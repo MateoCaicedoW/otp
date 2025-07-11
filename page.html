@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Package Documentation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+    <link rel="stylesheet" href="app.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <h3>Getting Started</h3>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#quick-start">Quick Start</a></li>
+            </ul>
+            
+            <h3>Configuration</h3>
+            <ul>
+                <li><a href="#config-struct">Config Struct</a></li>
+                <li><a href="#algorithms">Algorithms</a></li>
+                <li><a href="#default-config">Default Configuration</a></li>
+            </ul>
+            
+            <h3>TOTP</h3>
+            <ul>
+                <li><a href="#totp-generation">Generation</a></li>
+                <li><a href="#totp-validation">Validation</a></li>
+                <li><a href="#totp-utilities">Utilities</a></li>
+            </ul>
+            
+            <h3>HOTP</h3>
+            <ul>
+                <li><a href="#hotp-generation">Generation</a></li>
+                <li><a href="#hotp-validation">Validation</a></li>
+                <li><a href="#hotp-counter">Counter Management</a></li>
+            </ul>
+            
+            <h3>Security</h3>
+            <ul>
+                <li><a href="#secret-generation">Secret Generation</a></li>
+                <li><a href="#backup-codes">Backup Codes</a></li>
+                <li><a href="#qr-codes">QR Codes</a></li>
+            </ul>
+            
+            <h3>API Reference</h3>
+            <ul>
+                <li><a href="#methods">Methods</a></li>
+                <li><a href="#types">Types</a></li>
+                <li><a href="#errors">Error Handling</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <div class="header">
+                <h1>OTP Package</h1>
+                <p>A comprehensive Go library for generating and validating Time-based One-Time Passwords (TOTP) and HMAC-based One-Time Passwords (HOTP).</p>
+                <div class="badges">
+                    <span class="badge">Go 1.16+</span>
+                    <span class="badge">RFC 6238</span>
+                    <span class="badge">RFC 4226</span>
+                    <span class="badge">Thread-Safe</span>
+                </div>
+            </div>
+
+            <div class="toc">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#installation">Installation</a></li>
+                    <li><a href="#quick-start">Quick Start</a></li>
+                    <li><a href="#configuration">Configuration</a></li>
+                    <li><a href="#totp">TOTP (Time-based OTP)</a></li>
+                    <li><a href="#hotp">HOTP (HMAC-based OTP)</a></li>
+                    <li><a href="#security">Security Features</a></li>
+                    <li><a href="#api-reference">API Reference</a></li>
+                </ul>
+            </div>
+
+            <section id="overview" class="section">
+                <h2>Overview</h2>
+                <p>The OTP package provides a complete implementation of Time-based One-Time Password (TOTP) and HMAC-based One-Time Password (HOTP) algorithms according to RFC 6238 and RFC 4226 specifications.</p>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>TOTP Support</h4>
+                        <p>Generate and validate time-based OTP codes with configurable time periods and validation windows.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>HOTP Support</h4>
+                        <p>Counter-based OTP generation with flexible counter management and validation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Multiple Hash Algorithms</h4>
+                        <p>Support for SHA-1, SHA-256, and SHA-512 hashing algorithms.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>QR Code Integration</h4>
+                        <p>Generate QR codes and otpauth URLs for authenticator app integration.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Backup Codes</h4>
+                        <p>Generate and validate backup recovery codes for account recovery.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Thread-Safe</h4>
+                        <p>All operations are thread-safe and can be used in concurrent environments.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="installation" class="section">
+                <h2>Installation</h2>
+                <p>Install the OTP package using Go modules:</p>
+                
+                <div class="install-box">
+                    <h4>Go Get</h4>
+                    <div class="install-command">go get github.com/MateoCaicedoW/otp</div>
+                </div>
+                
+                <p>Then import it in your Go code:</p>
+                <div class="code-block">import "github.com/MateoCaicedoW/otp"</div>
+            </section>
+
+            <section id="quick-start" class="section">
+                <h2>Quick Start</h2>
+                
+                <h3>Basic TOTP Example</h3>
+                <div class="code-block">
+                    <pre>
+package main
+import (
+    "fmt"
+    "log"
+    "github.com/MateoCaicedoW/otp"
+)
+
+func main() {
+    // Generate a new secret
+    secret, err := otp.GenerateSecret(32)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create TOTP configuration
+    config := otp.NewTOTP(secret, "MyApp", "user@example.com", 6, 30)
+
+    // Generate current TOTP
+    code, err := config.GenerateTOTP()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Current TOTP: %s\n", code)
+
+    // Validate the code
+    valid, err := config.ValidateTOTP(code, 1)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Code is valid: %v\n", valid)
+}
+                    </pre>
+                </div>
+
+                <h3>Basic HOTP Example</h3>
+                <div class="code-block">
+                    <pre>
+// Create HOTP configuration
+config := otp.NewHOTP(secret, "MyApp", "user@example.com", 6, 0)
+
+// Generate HOTP
+code, err := config.GenerateHOTP()
+if err != nil {
+    log.Fatal(err)
+}
+
+// Validate and get next counter
+valid, nextCounter, err := config.ValidateHOTP(code, 10)
+if valid {
+    config.SetCounter(nextCounter + 1)
+}</pre>
+</div>
+            </section>
+
+            <section id="configuration" class="section">
+                <h2>Configuration</h2>
+                
+                <h3 id="config-struct">Config Struct</h3>
+                <p>The <code class="code-inline">Config</code> struct holds all configuration parameters for OTP generation:</p>
+                
+                <div class="code-block"><pre>type Config struct {
+    // Secret is the shared secret key (base32 encoded)
+    Secret string
+    
+    // Digits is the number of digits in the OTP (default: 6)
+    Digits int
+    
+    // Algorithm is the hashing algorithm (default: SHA1)
+    Algorithm Algorithm
+    
+    // Period is the time period in seconds for TOTP (default: 30)
+    Period int
+    
+    // Counter is the counter value for HOTP
+    Counter uint64
+    
+    // Issuer is the name of the service issuing the OTP
+    Issuer string
+    
+    // AccountName is the name of the account
+    AccountName string
+}</pre></div>
+
+                <h3 id="algorithms">Algorithms</h3>
+                <p>The package supports three hashing algorithms:</p>
+                
+                <table class="method-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Constant</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>SHA-1</td>
+                            <td><code class="code-inline">AlgorithmSHA1</code></td>
+                            <td>Default algorithm, widely supported</td>
+                        </tr>
+                        <tr>
+                            <td>SHA-256</td>
+                            <td><code class="code-inline">AlgorithmSHA256</code></td>
+                            <td>More secure alternative to SHA-1</td>
+                        </tr>
+                        <tr>
+                            <td>SHA-512</td>
+                            <td><code class="code-inline">AlgorithmSHA512</code></td>
+                            <td>Highest security option</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 id="default-config">Default Configuration</h3>
+                <p>Create a configuration with default values:</p>
+                <div class="code-block"><pre>config := otp.DefaultConfig()
+config.Secret = "your-secret-here"
+config.Issuer = "MyApp"
+config.AccountName = "user@example.com"</pre></div>
+            </section>
+
+            <section id="totp" class="section">
+                <h2>TOTP (Time-based OTP)</h2>
+                
+                <h3 id="totp-generation">Generation</h3>
+                <p>Generate TOTP codes for the current time or specific timestamps:</p>
+                
+                <div class="code-block"><pre>// Generate for current time
+code, err := config.GenerateTOTP()
+
+// Generate for specific time
+specificTime := time.Now().Add(-30 * time.Second)
+code, err := config.GenerateTOTPAt(specificTime)
+
+// Generate batch for multiple time windows
+entries, err := config.GenerateTOTPBatch(5)</pre></div>
+
+                <h3 id="totp-validation">Validation</h3>
+                <p>Validate TOTP codes with configurable time windows:</p>
+                
+                <div class="code-block"><pre>// Validate with default window (±1 period)
+valid, err := config.ValidateTOTP(code, 1)
+
+// Validate at specific time
+valid, err := config.ValidateTOTPAt(code, time.Now(), 2)</pre></div>
+
+                <div class="alert alert-info">
+                    <strong>Note:</strong> The window size determines how many time periods before and after the current time are considered valid. A window size of 1 allows codes from the previous, current, and next time periods.
+                </div>
+
+                <h3 id="totp-utilities">Utilities</h3>
+                <p>Additional TOTP utility functions:</p>
+                
+                <div class="code-block"><pre>// Get remaining time until current code expires
+remaining := config.GetRemainingTime()
+
+// Get next TOTP generation time
+nextTime := config.GetNextTOTPTime()
+
+// Get current time window boundaries
+start, end := config.GetCurrentTOTPWindow()</pre></div>
+            </section>
+
+            <section id="hotp" class="section">
+                <h2>HOTP (HMAC-based OTP)</h2>
+                
+                <h3 id="hotp-generation">Generation</h3>
+                <p>Generate HOTP codes using counter values:</p>
+                
+                <div class="code-block"><pre>// Generate using current counter
+code, err := config.GenerateHOTP()
+
+// Generate for specific counter
+code, err := config.GenerateHOTPAt(123)</pre></div>
+
+                <h3 id="hotp-validation">Validation</h3>
+                <p>Validate HOTP codes within a counter window:</p>
+                
+                <div class="code-block"><pre>// Validate with counter window
+valid, nextCounter, err := config.ValidateHOTP(code, 10)
+if valid {
+    // Update counter to prevent reuse
+    config.SetCounter(nextCounter + 1)
+}</pre></div>
+
+                <div class="alert alert-warning">
+                    <strong>Important:</strong> Always update the counter after successful validation to prevent replay attacks.
+                </div>
+
+                <h3 id="hotp-counter">Counter Management</h3>
+                <p>Manage HOTP counter values:</p>
+                
+                <div class="code-block"><pre>// Set counter to specific value
+config.SetCounter(100)
+
+// Increment counter and get new value
+newCounter := config.IncrementCounter()
+
+// Get current counter value
+currentCounter := config.Counter</pre></div>
+            </section>
+
+            <section id="security" class="section">
+                <h2>Security Features</h2>
+                
+                <h3 id="secret-generation">Secret Generation</h3>
+                <p>Generate cryptographically secure random secrets:</p>
+                
+                <div class="code-block"><pre>// Generate 32-byte secret (recommended)
+secret, err := otp.GenerateSecret(32)
+
+// Generate with custom length
+secret, err := otp.GenerateSecret(64)
+
+// Validate existing secret
+err := otp.ValidateSecret(secret)</pre></div>
+
+                <h3 id="backup-codes">Backup Codes</h3>
+                <p>Generate and validate backup recovery codes:</p>
+                
+                <div class="code-block"><pre>// Generate backup codes
+codes, err := otp.GenerateBackupCodes(10)
+
+// Validate backup code
+valid := otp.ValidateBackupCode(userInput, storedCode)</pre></div>
+
+                <h3 id="qr-codes">QR Codes</h3>
+                <p>Generate QR codes and otpauth URLs for authenticator apps:</p>
+                
+                <div class="code-block">
+<pre>
+// Get QR code URL
+qrURL, err := config.GetQRCodeURL()
+
+// Get otpauth URL
+otpauthURL, err := config.GetOTPAuthURL()
+
+// Parse otpauth URL
+parsedConfig, err := otp.ParseOTPAuthURL(otpauthURL)
+</pre>
+                </div>
+            </section>
+
+            <section id="api-reference" class="section">
+                <h2>API Reference</h2>
+                
+                <h3 id="methods">Methods</h3>
+                <table class="method-table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Description</th>
+                            <th>Returns</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="method-signature">GenerateSecret(length int)</span></td>
+                            <td>Generate a cryptographically secure random secret</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">ValidateSecret(secret string)</span></td>
+                            <td>Validate a base32-encoded secret</td>
+                            <td>error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GenerateTOTP()</span></td>
+                            <td>Generate TOTP for current time</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GenerateTOTPAt(t time.Time)</span></td>
+                            <td>Generate TOTP for specific time</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">ValidateTOTP(code string, windowSize int)</span></td>
+                            <td>Validate TOTP with time window</td>
+                            <td>bool, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">ValidateTOTPAt(code string, t time.Time, windowSize int)</span></td>
+                            <td>Validate TOTP at specific time</td>
+                            <td>bool, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GenerateHOTP()</span></td>
+                            <td>Generate HOTP using current counter</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GenerateHOTPAt(counter uint64)</span></td>
+                            <td>Generate HOTP for specific counter</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">ValidateHOTP(code string, windowSize int)</span></td>
+                            <td>Validate HOTP with counter window</td>
+                            <td>bool, uint64, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GetQRCodeURL()</span></td>
+                            <td>Generate QR code URL for authenticator apps</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GetOTPAuthURL()</span></td>
+                            <td>Generate otpauth URL</td>
+                            <td>string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">GenerateBackupCodes(count int)</span></td>
+                            <td>Generate backup recovery codes</td>
+                            <td>[]string, error</td>
+                        </tr>
+                        <tr>
+                            <td><span class="method-signature">ValidateBackupCode(provided, stored string)</span></td>
+                            <td>Validate backup code with constant-time comparison</td>
+                            <td>bool</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 id="types">Types</h3>
+                <div class="code-block">
+<pre>
+type Algorithm int
+
+const (
+    AlgorithmSHA1 Algorithm = iota
+    AlgorithmSHA256
+    AlgorithmSHA512
+)
+
+type Config struct {
+    Secret      string
+    Digits      int
+    Algorithm   Algorithm
+    Period      int
+    Counter     uint64
+    Issuer      string
+    AccountName string
+}
+
+type TOTPEntry struct {
+    Code      string
+    ValidFrom time.Time
+    ValidTo   time.Time
+    IsCurrent bool
+}
+</pre>
+                </div>
+
+                <h3 id="errors">Error Handling</h3>
+                <p>The package returns descriptive errors for various failure conditions:</p>
+                
+                <div class="code-block">
+<pre>
+// Common error scenarios
+if err != nil {
+switch {
+    case strings.Contains(err.Error(), "invalid base32 secret"):
+        // Handle invalid secret format
+    case strings.Contains(err.Error(), "digits must be between 1 and 10"):
+        // Handle invalid digits configuration
+    case strings.Contains(err.Error(), "secret is required"):
+        // Handle missing secret
+    case strings.Contains(err.Error(), "account name is required"):
+        // Handle missing account name
+    default:
+        // Handle other errors
+    }
+}</pre>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</body>
+</html>
